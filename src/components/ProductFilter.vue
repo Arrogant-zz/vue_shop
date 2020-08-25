@@ -39,7 +39,7 @@
               >
               <span
                 class="colors__value"
-                :style="{'background-color': color.color}"
+                :style="{'background-color': color.value}"
               >
               </span>
             </label>

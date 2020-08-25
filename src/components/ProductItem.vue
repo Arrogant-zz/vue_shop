@@ -3,7 +3,7 @@
     <a
       class="catalog__pic"
       href="#"
-      @click.prevent="$emit('gotoPage', 'product', {id: product.id})"
+      @click.prevent="gotoPage('product', {id: product.id})"
     >
       <img :src="product.image" :alt="product.title">
     </a>
@@ -15,13 +15,13 @@
     </h3>
 
     <span class="catalog__price">
-              {{ product.price }} ₽
+              {{ product.price | numberFormat }} ₽
         </span>
 
     <ul class="colors colors--black">
-      <li class="colors__item" v-for="color in itemColors" :key="color.id">
+      <li class="colors__item" v-for="color in colors" :key="color.id">
         <label class="colors__label">
-          <input class="colors__radio sr-only" type="radio" :value="color" v-model="currentColor">
+          <input class="colors__radio sr-only" type="radio" :value="color.id" v-model="currentColor">
           <span
             class="colors__value"
             :style="{'background-color': color.value}">
@@ -33,7 +33,9 @@
 </template>
 
 <script>
-import colors from '@/data/colors';
+import gotoPage from '@/helpers/gotoPage';
+import numberFormat from '@/helpers/numberFormat';
+import getColorsByIds from '@/helpers/getColorsByIds';
 
 export default {
   props: ['product'],
@@ -42,12 +44,15 @@ export default {
       currentColor: 0,
     };
   },
+  filters: {
+    numberFormat,
+  },
+  methods: {
+    gotoPage,
+  },
   computed: {
     colors() {
-      return Object.assign({}, ...colors.map(({ id, color }) => ({ [id]: color })));
-    },
-    itemColors() {
-      return this.product.colors.map((colorId) => ({ id: colorId, value: this.colors[colorId] }));
+      return getColorsByIds(this.product.colors);
     },
   },
 };
