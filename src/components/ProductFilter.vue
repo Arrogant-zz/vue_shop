@@ -48,7 +48,7 @@
       </fieldset>
 
       <fieldset class="form__block">
-        <legend class="form__legend">Объемб в ГБ</legend>
+        <legend class="form__legend">Объем в ГБ</legend>
         <ul class="check-list">
           <li class="check-list__item" v-for="memory in memories" :key="memory.id">
             <label class="check-list__label">
@@ -56,11 +56,12 @@
                 class="check-list__check sr-only"
                 type="checkbox"
                 name="volume"
-                :value="memory.size"
+                :value="memory.id"
+                v-model="currentSizes"
               >
               <span class="check-list__desc">
                     {{ memory.size }}
-                    <span>(313)</span>
+                    <span>({{ memory.numberOfProduct }})</span>
                   </span>
             </label>
           </li>
@@ -81,6 +82,7 @@
 import categories from '@/data/categories';
 import colors from '@/data/colors';
 import memories from '@/data/memories';
+import products from '@/data/products';
 
 export default {
   data() {
@@ -89,6 +91,7 @@ export default {
       currentPriceTo: 0,
       currentCategoryId: 0,
       currentColorId: 0,
+      currentSizes: [],
     };
   },
   props: {
@@ -96,6 +99,7 @@ export default {
     priceTo: Number,
     categoryId: Number,
     colorId: Number,
+    sizes: Array,
   },
   computed: {
     categories() {
@@ -105,7 +109,10 @@ export default {
       return colors;
     },
     memories() {
-      return memories;
+      return memories.map((memory) => ({
+        ...memory,
+        numberOfProduct: products.filter((product) => product.sizes && product.sizes.includes(memory.id)).length,
+      }));
     },
   },
   watch: {
@@ -118,8 +125,11 @@ export default {
     categoryId(value) {
       this.currentCategoryId = value;
     },
-    color(value) {
+    colorId(value) {
       this.currentColorId = value;
+    },
+    sizes(value) {
+      this.currentSizes = value;
     },
   },
   methods: {
@@ -128,6 +138,7 @@ export default {
       this.$emit('update:priceTo', this.currentPriceTo);
       this.$emit('update:categoryId', this.currentCategoryId);
       this.$emit('update:colorId', this.currentColorId);
+      this.$emit('update:sizes', this.currentSizes);
       this.$emit('filter-change');
     },
     reset() {
@@ -135,6 +146,7 @@ export default {
       this.$emit('update:priceTo', 0);
       this.$emit('update:categoryId', 0);
       this.$emit('update:colorId', 0);
+      this.$emit('update:sizes', []);
       this.$emit('filter-change');
     },
   },

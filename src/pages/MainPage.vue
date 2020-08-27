@@ -11,10 +11,7 @@
 
     <div class="content__catalog">
       <ProductFilter
-        :price-from.sync="filterPriceFrom"
-        :price-to.sync="filterPriceTo"
-        :category-id.sync="filterCategoryId"
-        :color-id.sync="filterColorId"
+        v-bind.sync="filter"
         @filter-change="setFirstPage"
       />
       <section class="catalog">
@@ -41,10 +38,13 @@ export default {
   },
   data() {
     return {
-      filterPriceFrom: 0,
-      filterPriceTo: 0,
-      filterCategoryId: 0,
-      filterColorId: 0,
+      filter: {
+        priceFrom: 0,
+        priceTo: 0,
+        categoryId: 0,
+        colorId: 0,
+        sizes: [],
+      },
       page: 1,
       productsPerPage: 6,
     };
@@ -58,20 +58,28 @@ export default {
     filteredProducts() {
       let filteredProducts = products;
 
-      if (this.filterPriceFrom > 0) {
-        filteredProducts = filteredProducts.filter((product) => product.price >= this.filterPriceFrom);
+      if (this.filter.priceFrom > 0) {
+        filteredProducts = filteredProducts.filter((product) => product.price >= this.filter.priceFrom);
       }
 
-      if (this.filterPriceTo > 0) {
-        filteredProducts = filteredProducts.filter((product) => product.price <= this.filterPriceTo);
+      if (this.filter.priceTo > 0) {
+        filteredProducts = filteredProducts.filter((product) => product.price <= this.filter.priceTo);
       }
 
-      if (this.filterCategoryId) {
-        filteredProducts = filteredProducts.filter((product) => product.categoryId === this.filterCategoryId);
+      if (this.filter.categoryId) {
+        filteredProducts = filteredProducts.filter((product) => product.categoryId === this.filter.categoryId);
       }
 
-      if (this.filterColorId) {
-        filteredProducts = filteredProducts.filter((product) => product.colors.includes(this.filterColorId));
+      if (this.filter.colorId) {
+        filteredProducts = filteredProducts.filter((product) => product.colors.includes(this.filter.colorId));
+      }
+
+      if (this.filter.sizes.length > 0) {
+        filteredProducts = filteredProducts.filter(
+          (product) => product.sizes && product.sizes.filter(
+            (size) => this.filter.sizes.includes(size),
+          ).length > 0,
+        );
       }
 
       return filteredProducts;

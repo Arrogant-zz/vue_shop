@@ -5,6 +5,7 @@ export default [
     colors: [1, 3, 2],
     title: 'Радионяня Motorola MBP16',
     price: 3690,
+    sizes: [1, 2],
     image: '/img/radio.jpg',
   },
   {
@@ -21,6 +22,7 @@ export default [
     colors: [1, 3, 2],
     title: 'Смартфон Xiaomi Mi Mix 3 6/128GB',
     price: 21790,
+    sizes: [1, 2, 6],
     image: '/img/phone.jpg',
   },
   {
@@ -37,6 +39,7 @@ export default [
     colors: [7],
     title: 'Смартфон Xiaomi Mi A3 4/64GB Android One',
     price: 14960,
+    sizes: [5, 6],
     image: '/img/phone-2.jpg',
   },
   {
@@ -45,6 +48,7 @@ export default [
     colors: [1],
     title: 'Смартфон Xiaomi Redmi 6/128GB',
     price: 8960,
+    sizes: [4],
     image: '/img/phone-3.jpg',
   },
   {
@@ -117,6 +121,7 @@ export default [
     colors: [5, 4, 7],
     title: 'ТВ-приставка Xiaomi Mi Box S',
     price: 4990,
+    sizes: [1, 2],
     image: '/img/pleer_1.jpg',
   },
   {
@@ -125,6 +130,7 @@ export default [
     colors: [5, 6, 7],
     title: 'Браслет Xiaomi Mi Band 4',
     price: 1949,
+    sizes: [1],
     image: '/img/watch_1.jpg',
   },
   {
