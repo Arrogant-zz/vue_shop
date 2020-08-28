@@ -82,7 +82,6 @@
 import categories from '@/data/categories';
 import colors from '@/data/colors';
 import memories from '@/data/memories';
-import products from '@/data/products';
 
 export default {
   data() {
@@ -100,6 +99,7 @@ export default {
     categoryId: Number,
     colorId: Number,
     sizes: Array,
+    memoryStats: Object,
   },
   computed: {
     categories() {
@@ -111,7 +111,7 @@ export default {
     memories() {
       return memories.map((memory) => ({
         ...memory,
-        numberOfProduct: products.filter((product) => product.sizes && product.sizes.includes(memory.id)).length,
+        numberOfProduct: this.memoryStats[memory.id] || 0,
       }));
     },
   },

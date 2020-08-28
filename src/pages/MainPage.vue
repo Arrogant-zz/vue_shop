@@ -12,6 +12,7 @@
     <div class="content__catalog">
       <ProductFilter
         v-bind.sync="filter"
+        :memory-stats="memoryStats"
         @filter-change="setFirstPage"
       />
       <section class="catalog">
@@ -90,6 +91,14 @@ export default {
     },
     countProducts() {
       return this.filteredProducts.length;
+    },
+    memoryStats() {
+      return products.filter((product) => product.sizes).reduce(
+        (stats, product) => (
+          product.sizes.reduce((r, size) => ({ ...r, [size]: (stats[size] || 0) + 1 }), stats)
+        ),
+        {},
+      );
     },
   },
 };
