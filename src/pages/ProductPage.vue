@@ -1,5 +1,12 @@
 <template>
-  <main class="content container">
+  <main class="content container" v-if="productLoading" style="text-align: center;">
+    <pulse-loader :size="15" :margin="'20px'" :sizeUnit="'px'" :color="'#bada55'"/>
+  </main>
+  <main class="content container" v-else-if="productLoadingFailed">
+    Произошла ошибка при загрузке товара.
+    <button @click="loadProduct">Обновить</button>
+  </main>
+  <main class="content container" v-else>
     <div class="content__top">
       <ul class="breadcrumbs">
         <li class="breadcrumbs__item">
@@ -91,10 +98,12 @@
             <div class="item__row">
               <InputCounter v-model="productAmount"/>
 
-              <button class="button button--primery" type="submit">
+              <button class="button button--primery" type="submit" :disabled="productAddSending">
                 В корзину
               </button>
             </div>
+            <div v-show="productAdded">Продукт добавлен в корзину</div>
+            <div v-show="productAddSending">Продукт добавляется...</div>
           </form>
         </div>
       </div>
@@ -167,40 +176,77 @@
 </template>
 
 <script>
-import products from '@/data/products';
-import categories from '@/data/categories';
 import numberFormat from '@/filters/numberFormat';
-import getColorsByIds from '@/helpers/getColorsByIds';
 import InputCounter from '@/components/InputCounter.vue';
+import axios from 'axios';
+import API_BASE_URL from '@/config';
+import { PulseLoader } from '@saeris/vue-spinners';
+import { mapActions } from 'vuex';
 
 export default {
   data() {
     return {
       productAmount: 1,
+      productData: null,
+      productLoading: false,
+      productLoadingFailed: false,
+      productAdded: false,
+      productAddSending: false,
     };
   },
-  components: { InputCounter },
+  components: { InputCounter, PulseLoader },
   methods: {
+    ...mapActions(['addProductToCart']),
     addToCart() {
-      this.$store.commit(
-        'addProductToCart',
-        { productId: this.product.id, amount: this.productAmount },
-      );
+      this.productAdded = false;
+      this.productAddSending = true;
+      this.addProductToCart({ productId: this.product.id, amount: this.productAmount })
+        .then(() => {
+          this.productAdded = true;
+          this.productAddSending = false;
+        });
+    },
+    loadProduct() {
+      this.productLoading = true;
+      this.productLoadingFailed = false;
+      axios.get(`${API_BASE_URL}/api/products/${this.$route.params.id}`)
+        .then((response) => {
+          this.productData = response.data;
+        })
+        .catch(() => { this.productLoadingFailed = true; })
+        .then(() => { this.productLoading = false; });
     },
   },
   computed: {
     product() {
-      return products.find((product) => product.id === +this.$route.params.id);
+      return {
+        ...this.productData,
+        image: this.productData.image.file.url,
+      };
     },
     category() {
-      return categories.find((category) => category.id === this.product.categoryId);
+      return {
+        ...this.productData.category,
+        name: this.productData.category.title,
+      };
     },
     colors() {
-      return getColorsByIds(this.product.colors);
+      return this.productData.colors.map((color) => ({
+        ...color,
+        value: color.code,
+      }));
     },
   },
   filters: {
     numberFormat,
+  },
+  watch: {
+    '$route.params.id': {
+      handler() {
+        this.loadProduct();
+      },
+      immediate: true,
+    },
   },
 };
 </script>

@@ -1,5 +1,11 @@
 <template>
-  <main class="content container">
+  <main class="content container" v-if="loading" style="text-align: center;">
+    <pulse-loader :size="15" :margin="'20px'" :sizeUnit="'px'" :color="'#bada55'"/>
+  </main>
+  <main class="content container" v-else-if="loadingFailed" style="text-align: center;">
+    Ошибка при загрузки корзины
+  </main>
+  <main class="content container" v-else>
     <div class="content__top">
       <ul class="breadcrumbs">
         <li class="breadcrumbs__item">
@@ -51,12 +57,18 @@
 import { mapGetters } from 'vuex';
 import CartItem from '@/components/CartItem.vue';
 import numberFormat from '@/filters/numberFormat';
+import { PulseLoader } from '@saeris/vue-spinners';
 
 export default {
-  components: { CartItem },
+  components: { CartItem, PulseLoader },
   filters: { numberFormat },
   computed: {
-    ...mapGetters({ products: 'cartDetailProducts', totalPrice: 'cartTotalPrice' }),
+    ...mapGetters({
+      products: 'cartDetailProducts',
+      totalPrice: 'cartTotalPrice',
+      loading: 'cartProductsLoading',
+      loadingFailed: 'cartProductsLoadingFailed',
+    }),
   },
 };
 </script>

@@ -33,7 +33,6 @@
 
 <script>
 import numberFormat from '@/filters/numberFormat';
-import getColorsByIds from '@/helpers/getColorsByIds';
 
 export default {
   props: ['product'],
@@ -47,7 +46,10 @@ export default {
   },
   computed: {
     colors() {
-      return getColorsByIds(this.product.colors);
+      return this.product.colors.map((color) => ({
+        ...color,
+        value: color.code,
+      }));
     },
   },
 };

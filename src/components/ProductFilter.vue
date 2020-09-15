@@ -79,9 +79,9 @@
 </template>
 
 <script>
-import categories from '@/data/categories';
-import colors from '@/data/colors';
 import memories from '@/data/memories';
+import axios from 'axios';
+import API_BASE_URL from '@/config';
 
 export default {
   data() {
@@ -91,6 +91,8 @@ export default {
       currentCategoryId: 0,
       currentColorId: 0,
       currentSizes: [],
+      categoriesData: null,
+      colorsData: null,
     };
   },
   props: {
@@ -103,10 +105,20 @@ export default {
   },
   computed: {
     categories() {
-      return categories;
+      return this.categoriesData
+        ? this.categoriesData.items.map((category) => ({
+          ...category,
+          name: category.title,
+        }))
+        : [];
     },
     colors() {
-      return colors;
+      return this.colorsData
+        ? this.colorsData.items.map((color) => ({
+          ...color,
+          value: color.code,
+        }))
+        : [];
     },
     memories() {
       return memories.map((memory) => ({
@@ -149,6 +161,22 @@ export default {
       this.$emit('update:sizes', []);
       this.$emit('filter-change');
     },
+    loadCategories() {
+      axios.get(`${API_BASE_URL}/api/productCategories`)
+        .then((response) => {
+          this.categoriesData = response.data;
+        });
+    },
+    loadColors() {
+      axios.get(`${API_BASE_URL}/api/colors`)
+        .then((response) => {
+          this.colorsData = response.data;
+        });
+    },
+  },
+  created() {
+    this.loadCategories();
+    this.loadColors();
   },
 };
 </script>

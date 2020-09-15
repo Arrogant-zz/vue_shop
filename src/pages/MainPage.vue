@@ -5,7 +5,7 @@
         Каталог
       </h1>
       <span class="content__info">
-        {{ products.length }} товара
+        {{ countProducts }} товара
       </span>
     </div>
 
@@ -16,6 +16,13 @@
         @filter-change="setFirstPage"
       />
       <section class="catalog">
+        <div v-if="productsLoadingFailed">
+          Произошла ошибка при загрузке товаров.
+          <button @click="loadProducts">Обновить</button>
+        </div>
+        <div v-if="productsLoading" style="text-align: center;">
+          <pulse-loader :size="15" :margin="'20px'" :sizeUnit="'px'" :color="'#bada55'"/>
+        </div>
         <ProductList
           :products="products"
         />
@@ -30,9 +37,13 @@ import products from '@/data/products';
 import ProductList from '@/components/ProductList.vue';
 import BasePagination from '@/components/BasePagination.vue';
 import ProductFilter from '@/components/ProductFilter.vue';
+import axios from 'axios';
+import API_BASE_URL from '@/config';
+import { PulseLoader } from '@saeris/vue-spinners';
 
 export default {
   components: {
+    PulseLoader,
     ProductList,
     BasePagination,
     ProductFilter,
@@ -48,49 +59,54 @@ export default {
       },
       page: 1,
       productsPerPage: 6,
+
+      productsData: null,
+      productsLoading: false,
+      productsLoadingFailed: false,
     };
   },
   methods: {
     setFirstPage() {
       this.page = 1;
     },
+    loadProducts() {
+      this.productsLoading = true;
+      this.productsLoadingFailed = false;
+      clearTimeout(this.loadProductsTimer);
+      this.loadProductsTimer = setTimeout(() => {
+        axios.get(`${API_BASE_URL}/api/products`,
+          {
+            params: {
+              page: this.page,
+              limit: this.productsPerPage,
+              categoryId: this.filter.categoryId,
+              minPrice: this.filter.priceFrom,
+              maxPrice: this.filter.priceTo,
+              colorId: this.filter.colorId,
+            },
+          })
+          .then((response) => {
+            this.productsData = response.data;
+          })
+          .catch(() => { this.productsLoadingFailed = true; })
+          .then(() => { this.productsLoading = false; });
+      }, 2000);
+    },
+  },
+  created() {
+    this.loadProducts();
   },
   computed: {
-    filteredProducts() {
-      let filteredProducts = products;
-
-      if (this.filter.priceFrom > 0) {
-        filteredProducts = filteredProducts.filter((product) => product.price >= this.filter.priceFrom);
-      }
-
-      if (this.filter.priceTo > 0) {
-        filteredProducts = filteredProducts.filter((product) => product.price <= this.filter.priceTo);
-      }
-
-      if (this.filter.categoryId) {
-        filteredProducts = filteredProducts.filter((product) => product.categoryId === this.filter.categoryId);
-      }
-
-      if (this.filter.colorId) {
-        filteredProducts = filteredProducts.filter((product) => product.colors.includes(this.filter.colorId));
-      }
-
-      if (this.filter.sizes.length > 0) {
-        filteredProducts = filteredProducts.filter(
-          (product) => product.sizes && product.sizes.filter(
-            (size) => this.filter.sizes.includes(size),
-          ).length > 0,
-        );
-      }
-
-      return filteredProducts;
-    },
     products() {
-      const offset = (this.page - 1) * this.productsPerPage;
-      return this.filteredProducts.slice(offset, offset + this.productsPerPage);
+      return this.productsData
+        ? this.productsData.items.map((product) => ({
+          ...product,
+          image: product.image.file.url,
+        }))
+        : [];
     },
     countProducts() {
-      return this.filteredProducts.length;
+      return this.productsData ? this.productsData.pagination.total : 0;
     },
     memoryStats() {
       return products.filter((product) => product.sizes).reduce(
@@ -99,6 +115,17 @@ export default {
         ),
         {},
       );
+    },
+  },
+  watch: {
+    page() {
+      this.loadProducts();
+    },
+    filter: {
+      handler() {
+        this.loadProducts();
+      },
+      deep: true,
     },
   },
 };

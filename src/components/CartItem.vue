@@ -35,7 +35,7 @@
 
 <script>
 import numberFormat from '@/filters/numberFormat';
-import { mapMutations } from 'vuex';
+import { mapActions } from 'vuex';
 import InputCounter from '@/components/InputCounter.vue';
 
 export default {
@@ -52,7 +52,7 @@ export default {
         return this.item.amount;
       },
       set(value) {
-        this.$store.commit(
+        this.$store.dispatch(
           'updateCartProductAmount',
           { productId: this.item.productId, amount: value },
         );
@@ -60,7 +60,7 @@ export default {
     },
   },
   methods: {
-    ...mapMutations({ deleteProduct: 'deleteCartProduct' }),
+    ...mapActions({ deleteProduct: 'deleteCartProduct' }),
   },
 };
 </script>
