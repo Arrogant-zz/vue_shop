@@ -7,8 +7,6 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    cartProducts: [],
-
     userAccessKey: null,
     cartProductsData: [],
     cartProductsLoading: false,
@@ -16,28 +14,17 @@ export default new Vuex.Store({
   },
   mutations: {
     updateCartProductAmount(state, { productId, amount }) {
-      const item = state.cartProducts.find((i) => i.productId === productId);
+      const item = state.cartProductsData.find((i) => i.productId === productId);
 
       if (item) {
         item.amount = amount;
       }
-    },
-    deleteCartProduct(state, productId) {
-      state.cartProducts = state.cartProducts.filter(
-        (item) => item.productId !== productId,
-      );
     },
     updateUserAccessKey(state, accessKey) {
       state.userAccessKey = accessKey;
     },
     updateCartProductsData(state, items) {
       state.cartProductsData = items;
-    },
-    syncCartProducts(state) {
-      state.cartProducts = state.cartProductsData.map((item) => ({
-        productId: item.product.id,
-        amount: item.quantity,
-      }));
     },
     updateCartProductsLoading(state, flag) {
       state.cartProductsLoading = flag;
@@ -48,16 +35,14 @@ export default new Vuex.Store({
   },
   getters: {
     cartDetailProducts(state) {
-      return state.cartProducts.map((item) => {
-        const { product } = state.cartProductsData.find((p) => p.product.id === item.productId);
-        return {
-          ...item,
-          product: {
-            ...product,
-            image: product.image.file.url,
-          },
-        };
-      });
+      return state.cartProductsData.map((item) => ({
+        amount: item.quantity,
+        productId: item.product.id,
+        product: {
+          ...item.product,
+          image: item.product.image.file.url,
+        },
+      }));
     },
     cartTotalPrice(state, getters) {
       return getters.cartDetailProducts.reduce((acc, item) => (item.product.price * item.amount) + acc, 0);
@@ -87,7 +72,6 @@ export default new Vuex.Store({
           }
 
           context.commit('updateCartProductsData', response.data.items);
-          context.commit('syncCartProducts');
         })
         .catch(() => { context.commit('updateCartProductsLoadingFailed', true); })
         .then(() => { context.commit('updateCartProductsLoading', false); });
@@ -104,12 +88,9 @@ export default new Vuex.Store({
         })
         .then((response) => {
           context.commit('updateCartProductsData', response.data.items);
-          context.commit('syncCartProducts');
         });
     },
     updateCartProductAmount(context, { productId, amount }) {
-      context.commit('updateCartProductAmount', { productId, amount });
-
       if (amount < 1) {
         return new Promise();
       }
@@ -123,13 +104,10 @@ export default new Vuex.Store({
             userAccessKey: context.state.userAccessKey,
           },
         })
-        .then((response) => { context.commit('updateCartProductsData', response.data.items); })
-        .catch(() => { context.commit('syncCartProducts'); });
+        .then((response) => { context.commit('updateCartProductsData', response.data.items); });
     },
     deleteCartProduct(context, productId) {
-      context.commit('deleteCartProduct', productId);
-
-      return (new Promise((resolve) => setTimeout(resolve, 0)))
+      return (new Promise((resolve) => setTimeout(resolve, 3000)))
         .then(() => axios
           .delete(`${API_BASE_URL}/api/baskets/products`, {
             params: {
@@ -141,9 +119,6 @@ export default new Vuex.Store({
           })
           .then((response) => {
             context.commit('updateCartProductsData', response.data.items);
-          })
-          .catch(() => {
-            context.commit('syncCartProducts');
           }));
     },
   },
