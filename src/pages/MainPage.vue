@@ -23,7 +23,7 @@
         <div v-if="productsLoading" style="text-align: center;">
           <pulse-loader :size="15" :margin="'20px'" :sizeUnit="'px'" :color="'#bada55'"/>
         </div>
-        <ProductList
+        <ProductList v-else
           :products="products"
         />
         <BasePagination v-model="page" :count="countProducts" :per-page="productsPerPage"/>
@@ -93,9 +93,6 @@ export default {
       }, 2000);
     },
   },
-  created() {
-    this.loadProducts();
-  },
   computed: {
     products() {
       return this.productsData
@@ -118,8 +115,11 @@ export default {
     },
   },
   watch: {
-    page() {
-      this.loadProducts();
+    page: {
+      handler() {
+        this.loadProducts();
+      },
+      immediate: true,
     },
     filter: {
       handler() {
